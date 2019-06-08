@@ -42,14 +42,40 @@ namespace GetAssemblyVersion
          
         static void FileRead(List<FileInfo> files)
         {
-            for(int i=0; i<files.Count; i++)
+            string format;
+            using (var sw = new StreamWriter(@"C:\Data\test1.csv", false, System.Text.Encoding.Default))
             {
-                using (StreamReader sr = new StreamReader(files[i].FullName))
+                for (int i = 0; i < files.Count; i++)
                 {
-                    string content = sr.ReadToEnd();
-                    Console.WriteLine(content);
+                    //一行ずつ読みとった情報を格納
+                    string content = "";
+                    //読み込むファイルの絶対パス
+                    string filePath = files[i].FullName;
+
+                    using (StreamReader sr = new StreamReader(files[i].FullName))
+                    {
+                        sw.WriteLine(filePath);
+                        while ((content = sr.ReadLine()) != null)
+                        {
+                            //string pattern = ("[assembly:"+ * + "]");
+                            if (content.Contains("[assembly: Assembly"))
+                            {
+                                format = content.Trim().Replace("[", "").Replace("]", "").Replace(": ", "\t");
+                                //特定のコメントを削除。未機能。
+                                if (content == "// [assembly: AssemblyVersion(\"" + @"1.0.*" + "\"" + ")]")
+                                {
+                                    format = content.Replace(Environment.NewLine, "");
+                                }
+                                //指定csvに出力
+                                sw.WriteLine(format);
+                            }
+                        }
+                        //1ファイルの読み込みが終わると改行
+                        sw.WriteLine("");
+                    }
                 }
             }
         }
+
     }
 }
